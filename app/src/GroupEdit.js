@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Container, Form, FormGroup, Input, Label } from 'reactstrap';
 import AppNavbar from './AppNavbar';
+import { useCookies } from 'react-cookie';
 
 const GroupEdit = () => {
+    const [cookies] = useCookies(['XSRF-TOKEN']);
+
     const initialFormState = {
         name: '',
         address: '',
@@ -34,12 +37,14 @@ const GroupEdit = () => {
         event.preventDefault();
 
         await fetch(`/api/group${group.id ? `/${group.id}` : ''}`, {
-            method: (group.id) ? 'PUT' : 'POST',
+            method: group.id ? 'PUT' : 'POST',
             headers: {
+                'X-XSRF-TOKEN': cookies['XSRF-TOKEN'],
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(group)
+            body: JSON.stringify(group),
+            credentials: 'include'
         });
         setGroup(initialFormState);
         navigate('/groups');
