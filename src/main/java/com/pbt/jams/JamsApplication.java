@@ -9,6 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 // Run both frontend and backend ./mvnw spring-boot:run -Pprod
 // Run just backend  ./mvnw spring-boot:run
 // Run just frontend npm start
+// For Google Sign in must setup OKTA Google Identity Provider
+//   and create OIDC App with Google Developer Console
 @SpringBootApplication
 public class JamsApplication {
 
