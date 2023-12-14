@@ -1,5 +1,6 @@
 package com.pbt.jams.model;
 
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,8 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
+import java.lang.reflect.Array;
 
 @Data
 @NoArgsConstructor
@@ -19,4 +22,6 @@ public class User {
     private String id;
     private String name;
     private String email;
+    private byte[] profileImage;
+    @ManyToOne private User[] friends;
 }

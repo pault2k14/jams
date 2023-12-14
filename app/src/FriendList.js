@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import './App.css';
+import { Button, ButtonGroup, Container, Table, Row, Col, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import AppNavbar from './AppNavbar';
+import { Buffer } from 'buffer';
 import { Link } from 'react-router-dom';
-import {Button, Col, Container, Row} from 'reactstrap';
 import { useCookies } from 'react-cookie';
-import {Tooltip} from "react-tooltip";
-import {FaB, FaJ} from "react-icons/fa6";
-import Post from "./Post";
+import {FaCircle, FaEdit, FaTrash} from "react-icons/fa";
+import ImageGallery from 'react-image-gallery';
+import "react-image-gallery/styles/css/image-gallery.css";
+import {FaB, FaJ, FaP} from "react-icons/fa6";
+import UserProfile from "./UserProfile";
 
-const Home = () => {
 
-    const [authenticated, setAuthenticated] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [user, setUser] = useState(undefined);
+const FriendList = () => {
     const [cookies] = useCookies(['XSRF-TOKEN']);
+    const [selectedFriend, setSelectedFriend] = useState();
     const [friends, setFriends] = useState([
         {
             name: "Bob Smith",
@@ -60,86 +60,68 @@ const Home = () => {
             ]
         }
     ]);
-
-    useEffect(() => {
-        setLoading(true);
-        fetch('api/user', { credentials: 'include' })
-            .then(response => response.text())
-            .then(body => {
-                if (body === '') {
-                    setAuthenticated(false);
-                } else {
-                    setUser(JSON.parse(body));
-                    setAuthenticated(true);
-                }
-                setLoading(false);
-            });
-    }, [setAuthenticated, setLoading, setUser])
-
-    const login = () => {
-        let port = (window.location.port ? ':' + window.location.port : '');
-        if (port === ':3000') {
-            port = ':8080';
-        }
-        // redirect to a protected URL to trigger authentication
-        window.location.href = `//${window.location.hostname}${port}/api/private`;
-    }
-
-    const logout = () => {
-        fetch('/api/logout', {
-            method: 'POST', credentials: 'include',
-            headers: { 'X-XSRF-TOKEN': cookies['XSRF-TOKEN'] }
-        })
-            .then(res => res.json())
-            .then(response => {
-                window.location.href = `${response.logoutUrl}?id_token_hint=${response.idToken}`
-                    + `&post_logout_redirect_uri=${window.location.origin}`;
-            });
-    }
-
-    const message = user ?
-        <h2>Welcome, {user.name}!</h2> :
-        <p>Please log in to manage your JUG Tour.</p>;
-
-    const button = authenticated ?
-        <div>
-            <Button color="link" onClick={logout}>Logout</Button>
-        </div> :
-        <Button color="primary" onClick={login}>Login</Button>;
-
-    const friendPosts = friends.map(friend => {
-        return <Row>
-            {friend.posts.map((post) => {
-                return <Row>
-                    <Post name={friend.name} date={post.date} miniProfileImage={friend.miniProfileImage} content={post.content}/>
-                </Row>
-            })}
-        </Row>
-    });
-
-    const feed = authenticated ?
-        <div>
-            <Row>
-                {friendPosts}
-            </Row>
-        </div>
-        : <div></div>
+    const [loading, setLoading] = useState(false);
 
     if (loading) {
         return <p>Loading...</p>;
     }
 
+    function customSetSelectedFriend(friend) {
+        //console.dir(friend)
+        setSelectedFriend(friend);
+    }
+
+    const friendList = friends.map(friend => {
+        return <Row onClick={() => customSetSelectedFriend(friend)}>
+                <Col style={{paddingBottom: 25}} className={"col-auto justify-content-start"}>
+                    <Row>{friend.mediumProfileImage}</Row>
+                </Col>
+                <Col className={"col-auto justify-content-start"}>
+                    <Row><p style={{fontSize: 14}}>
+                        {friend.name}
+                        <br/>
+                        {friend.friends} friends, {friend.mutualFriends} mutual</p>
+                    </Row>
+                </Col>
+            </Row>
+    });
+
+
     return (
         <div>
             <AppNavbar/>
             <Container fluid>
-                <h3>My Home</h3>
-                {feed}
-                {message}
-                {button}
+                        <Row>
+                            <Col className={"col-auto justify-content-start"}>
+                                <Row>
+                                    <h3>My Friends</h3>
+                                </Row>
+                                <Row>
+                                    <form style={{paddingBottom: 30}}>
+                                        <input style={{marginRight: 10}} type="text" placeholder="Search by name or email.."/>
+                                        <input type="submit" value="Submit" />
+                                    </form>
+                                </Row>
+                                <Row>{friendList}</Row>
+                            </Col>
+                            <Col className={"col-8"}>
+                                <Row>
+                                    <div className={"d-flex justify-content-end"}>
+                                        <Button color="success" tag={Link} to="/friends/new">Add Friend</Button>
+                                    </div>
+                                </Row>
+                                <Row>
+                                    <>
+                                        {selectedFriend ?
+                                            <UserProfile currentUser={selectedFriend}/>
+                                            : <p>Select a friend to view their profile</p>}
+                                    </>
+                                </Row>
+                            </Col>
+                        </Row>
             </Container>
         </div>
     );
-}
+};
 
-export default Home;
+export default FriendList;

@@ -11,8 +11,6 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-// From https://developer.okta.com/blog/2022/06/17/simple-crud-react-and-spring-boot
-
 @Component
 class Initializer implements CommandLineRunner {
 
