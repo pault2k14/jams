@@ -12,7 +12,7 @@ import {FaArrowAltCircleLeft, FaArrowAltCircleRight, FaArrowRight, FaSubway} fro
 import CreatePost from "./CreatePost";
 import {useFriends} from "./context/FriendProvider";
 
-const Home = () => {
+const Timeline = () => {
 
     const [authenticated, setAuthenticated] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -20,7 +20,6 @@ const Home = () => {
     const [user, setUser] = useState(undefined);
     const [cookies] = useCookies(['XSRF-TOKEN']);
     const {friends, setFriends} = useFriends();
-    const [orderedPosts, setOrderedPosts] = useState([]);
 
     useEffect(() => {
         setLoading(true);
@@ -36,10 +35,6 @@ const Home = () => {
                 setLoading(false);
             });
     }, [setAuthenticated, setLoading, setUser])
-
-    useEffect(() => {
-        setOrderedPosts(orderPosts(friends));
-    },[setOrderedPosts, friends])
 
     const login = () => {
         let port = (window.location.port ? ':' + window.location.port : '');
@@ -72,37 +67,24 @@ const Home = () => {
         </div> :
         <Button color="primary" onClick={login}>Login</Button>;
 
-    function orderPosts(listOfFriends) {
-        let internalOrderedPosts = [];
-
-        listOfFriends.forEach(function(item) {
-            item.posts.forEach(function(post) {
-                internalOrderedPosts.push({
-                    name: item.name,
-                    profileImage: item.profileImage,
-                    mediumProfileImage: item.mediumProfileImage,
-                    miniProfileImage: item.miniProfileImage,
-                    post: post
-                });
-            });
-        })
-
-        internalOrderedPosts.sort(function(a, b) {
-            // Sort in descending order, newest post first.
-            return b.post.timestamp - a.post.timestamp;
-        });
-
-        internalOrderedPosts.forEach(function(item) {
-            console.log(item)
-        })
-
-        return internalOrderedPosts;
-    }
-
-    const friendPosts = orderedPosts.map(item => {
+    const friendPosts = friends.map(friend => {
         return <Row>
-            <Post name={item.name} timestamp={item.post.timestamp} miniProfileImage={item.miniProfileImage} content={item.post.content}/>
+            {friend.posts.map((post) => {
+                return <Row>
+                    <Post name={friend.name} date={post.date} miniProfileImage={friend.miniProfileImage} content={post.content}/>
+                </Row>
+            })}
         </Row>
+    });
+
+    const userPosts = posts.map(post => {
+        const postDate = new Date(post.timestamp);
+        return <div style={{marginBottom: 20}}>
+            <Row>
+                <Row style={{marginBottom: 20}}>{postDate.toLocaleDateString() + " at " + postDate.toLocaleTimeString()}</Row>
+                <Row>{post.content}</Row>
+            </Row>
+        </div>
     });
 
     const feed = authenticated ?
@@ -121,8 +103,9 @@ const Home = () => {
         <div>
             <AppNavbar/>
             <Container fluid>
-                <h3>My Home</h3>
+                <h3>My Timeline</h3>
                 <CreatePost/>
+                {userPosts}
                 {feed}
                 {message}
                 {button}
@@ -131,4 +114,4 @@ const Home = () => {
     );
 }
 
-export default Home;
+export default Timeline;

@@ -114,7 +114,7 @@ class PhotoController {
         // check to see if user already exists
         Optional<User> user = userRepository.findById(userId);
         photo.setUser(user.orElse(new User(userId,
-                details.get("name").toString(), details.get("email").toString())));
+                details.get("name").toString(), details.get("email").toString(), null, null)));
         photo.setPhotoUUID(UUID.randomUUID());
         photo.setLocation(photo.createLocation());
         photo.setApiUrl(photo.createApiUrl());

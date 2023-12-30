@@ -35,11 +35,11 @@ const AppNavbar = () => {
                     </NavItem>
                     <NavItem>
                         <NavLink
-                            data-tooltip-id="feed-tooltip"
-                            data-tooltip-content="Feed"
+                            data-tooltip-id="timeline-tooltip"
+                            data-tooltip-content="Timeline"
                             data-tooltip-place="bottom"
-                            tag={Link} to="/">
-                            <Tooltip id="feed-tooltip" />
+                            tag={Link} to="/timeline">
+                            <Tooltip id="timeline-tooltip" />
                             <FaNewspaper size="30"/>
                         </NavLink>
                     </NavItem>
