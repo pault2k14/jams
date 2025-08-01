@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Button, ButtonGroup, Container, Table, Row, Col, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Button, ButtonGroup, Container, Row, Col, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import AppNavbar from './AppNavbar';
-import { Buffer } from 'buffer';
 import { Link } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import {FaEdit, FaTrash} from "react-icons/fa";

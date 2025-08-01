@@ -1,0 +1,13 @@
+
+.AboutLeftColumn {
+    background-color: white;
+    padding: 10px;
+    margin-bottom: 25px;
+}
+
+.AboutRightColumn {
+    background-color: white;
+    padding: 10px;
+    margin-left: 10px;
+    margin-bottom: 25px;
+}

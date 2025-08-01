@@ -1,0 +1,31 @@
+.bubble-container{
+    margin-top: 8px;
+    margin-bottom: 8px;
+    display:flex;
+    font-family: sans-serif;
+    font-size: 14px;
+    justify-content: start;
+    align-content: start;
+}
+
+.bubble{
+    background-color: #F2F2F2;
+    border-radius: 5px;
+    box-shadow: 0 0 6px #B2B2B2;
+    display: block;
+    padding: 5px 5px;
+    position: relative;
+    vertical-align: top;
+    color: white;
+    word-wrap: break-word;
+}
+
+.current-user {
+    background-color: yellowgreen;
+    color: black;
+}
+
+.other-user {
+    background-color: #087FFE;
+    color: white;
+}

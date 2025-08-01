@@ -7,7 +7,7 @@ import {
     FaHome,
     FaNewspaper,
     FaPeopleArrows,
-    FaSignOutAlt,
+    FaSignOutAlt, FaTablet,
     FaTrash,
     FaUserFriends
 } from "react-icons/fa";
@@ -19,7 +19,11 @@ const AppNavbar = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <Navbar color="dark" dark expand="md">
+        <Navbar
+            fixed="top"
+            color="dark"
+            dark
+            expand="md">
             <NavbarBrand tag={Link} to="/">Socialiter</NavbarBrand>
             <Collapse isOpen={isOpen} navbar>
                 <Nav className="justify-content-start" style={{width: "100%"}} navbar>
@@ -31,16 +35,6 @@ const AppNavbar = () => {
                             tag={Link} to="/">
                             <Tooltip id="home-tooltip" />
                             <FaHome size="30"/>
-                        </NavLink>
-                    </NavItem>
-                    <NavItem>
-                        <NavLink
-                            data-tooltip-id="timeline-tooltip"
-                            data-tooltip-content="Timeline"
-                            data-tooltip-place="bottom"
-                            tag={Link} to="/timeline">
-                            <Tooltip id="timeline-tooltip" />
-                            <FaNewspaper size="30"/>
                         </NavLink>
                     </NavItem>
                     <NavItem>

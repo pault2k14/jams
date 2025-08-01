@@ -1,131 +1,144 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './App.css';
 import AppNavbar from './AppNavbar';
-import { Link } from 'react-router-dom';
-import {Button, Col, Container, Form, FormGroup, Input, Label, Row} from 'reactstrap';
-import { useCookies } from 'react-cookie';
-import {Tooltip} from "react-tooltip";
-import {FaArrowsLeftRight, FaArrowsLeftRightToLine, FaB, FaJ, FaXmark} from "react-icons/fa6";
-import Post from "./Post";
-import { usePost } from "./context/PostProvider";
-import {FaArrowAltCircleLeft, FaArrowAltCircleRight, FaArrowRight, FaSubway} from "react-icons/fa";
-import CreatePost from "./CreatePost";
+import {Col, Container, Row} from 'reactstrap';
+import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
+import Account from "./Account";
+import {
+    orderPostsByTimestamp,
+    usePost
+} from "./context/PostProvider";
+import {useUsers} from "./context/UsersProvider";
+import currentUserProvider, {useCurrentUser} from "./context/CurrentUserProvider";
+import {Link, useNavigate} from 'react-router-dom';
+import {setFriendsByUserId} from "./context/friendUtils";
+import {useProfilePost} from "./context/ProfilePostProvider";
 import {useFriends} from "./context/FriendProvider";
+import {assembleSingleTimeline} from "./assembleTimeline";
+import RecursivePostList from "./RecursivePostList";
+import {
+    updateOnLikeForHome,
+    updateOnReplyForHome,
+    updateOnShareForHome
+} from "./context/postUtils";
+import post from "./Post";
+import DisplayPostList from "./DisplayPostList";
+import {FaUserGroup} from "react-icons/fa6";
+import {Image} from "react-bootstrap";
 
 const Home = () => {
-
-    const [authenticated, setAuthenticated] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const {posts, setPosts} = usePost();
-    const [user, setUser] = useState(undefined);
-    const [cookies] = useCookies(['XSRF-TOKEN']);
-    const {friends, setFriends} = useFriends();
-    const [orderedPosts, setOrderedPosts] = useState([]);
-
-    useEffect(() => {
-        setLoading(true);
-        fetch('api/user', { credentials: 'include' })
-            .then(response => response.text())
-            .then(body => {
-                if (body === '') {
-                    setAuthenticated(false);
-                } else {
-                    setUser(JSON.parse(body));
-                    setAuthenticated(true);
-                }
-                setLoading(false);
-            });
-    }, [setAuthenticated, setLoading, setUser])
+    const {postsObject, setPostsByUserId,
+        getStoredSinglePostByPostId, getPostsForAllFriends} = usePost();
+    const {posts, setPosts} = postsObject;
+    const {profilePostsObject, setProfilePostsByUserId} = useProfilePost();
+    const {profilePosts, setProfilePosts} = profilePostsObject;
+    const {friendsObject, incomingFriendRequestsObject, outgoingFriendRequestsObject, setFriendsByUserId,
+        sendFriendRequest, confirmFriendRequest, getNumberOfFriendsByUserId,
+        getNumberOfMutualFriendsByUserId} = useFriends();
+    const {friends, setFriends} = friendsObject;
+    const {usersObject, getUserById} = useUsers();
+    const {users, setUsers} = usersObject;
+    const {currentUserObject, setCurrentUserByUserId} = useCurrentUser();
+    const {currentUser, setCurrentUser} = currentUserObject;
+    const [homeUser, setHomeUser] = useState({});
+    const navigate = useNavigate()
+    const navigateToFriends = () => navigate('/friends');//eg.history.push('/login');
+    const navigateToProfile = () => navigate('/friends/' + currentUser.userId)
 
     useEffect(() => {
-        setOrderedPosts(orderPosts(friends));
-    },[setOrderedPosts, friends])
+        const fetchData = async () => {
+            if(!currentUser) {
+                setCurrentUser(getUserById(10));
+            }
 
-    const login = () => {
-        let port = (window.location.port ? ':' + window.location.port : '');
-        if (port === ':3000') {
-            port = ':8080';
-        }
-        // redirect to a protected URL to trigger authentication
-        window.location.href = `//${window.location.hostname}${port}/api/private`;
+            setPostsByUserId(10);
+            setHomeUser(getUserById(10));
+            setFriendsByUserId(10);
+        };
+
+        fetchData();
+    }, [currentUser, homeUser]);
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+            getPostsForAllFriends(friends);
+        };
+
+        fetchData();
+    }, [friends]);
+
+    if(!currentUser) {
+        return <p>Loading...</p>
     }
 
-    const logout = () => {
-        fetch('/api/logout', {
-            method: 'POST', credentials: 'include',
-            headers: { 'X-XSRF-TOKEN': cookies['XSRF-TOKEN'] }
-        })
-            .then(res => res.json())
-            .then(response => {
-                window.location.href = `${response.logoutUrl}?id_token_hint=${response.idToken}`
-                    + `&post_logout_redirect_uri=${window.location.origin}`;
-            });
+    const customUpdateOnShare = (postToShare, newContentToShare) => {
+        updateOnShareForHome(currentUser, postToShare, newContentToShare);
     }
 
-    const message = user ?
-        <h2>Welcome, {user.name}!</h2> :
-        <p>Please log in to manage your JUG Tour.</p>;
-
-    const button = authenticated ?
-        <div>
-            <Button color="link" onClick={logout}>Logout</Button>
-        </div> :
-        <Button color="primary" onClick={login}>Login</Button>;
-
-    function orderPosts(listOfFriends) {
-        let internalOrderedPosts = [];
-
-        listOfFriends.forEach(function(item) {
-            item.posts.forEach(function(post) {
-                internalOrderedPosts.push({
-                    name: item.name,
-                    profileImage: item.profileImage,
-                    mediumProfileImage: item.mediumProfileImage,
-                    miniProfileImage: item.miniProfileImage,
-                    post: post
-                });
-            });
-        })
-
-        internalOrderedPosts.sort(function(a, b) {
-            // Sort in descending order, newest post first.
-            return b.post.timestamp - a.post.timestamp;
-        });
-
-        internalOrderedPosts.forEach(function(item) {
-            console.log(item)
-        })
-
-        return internalOrderedPosts;
+    const customUpdateOnLike = (postToLike, currentUserId) => {
+        updateOnLikeForHome(currentUser, friends, setPosts, postToLike, users);
+        getPostsForAllFriends(friends);
     }
 
-    const friendPosts = orderedPosts.map(item => {
-        return <Row>
-            <Post name={item.name} timestamp={item.post.timestamp} miniProfileImage={item.miniProfileImage} content={item.post.content}/>
-        </Row>
-    });
-
-    const feed = authenticated ?
-        <div>
-            <Row>
-                {friendPosts}
-            </Row>
-        </div>
-        : <div></div>
-
-    if (loading) {
-        return <p>Loading...</p>;
+    const customUpdateOnReply = (postToReplyTo, newReplyContent) => {
+        updateOnReplyForHome(currentUser, friends, setPosts, postToReplyTo, newReplyContent, users);
+        getPostsForAllFriends(friends);
     }
+
+    let userImage = require("./data/images/" + currentUser.userId + "/user-image.jpg");
+
 
     return (
         <div>
-            <AppNavbar/>
-            <Container fluid>
-                <h3>My Home</h3>
-                <CreatePost/>
-                {feed}
-                {message}
-                {button}
+            <Container fluid style={{
+                paddingTop: 75,
+                backgroundColor: "whitesmoke"
+            }}>
+                <Row>
+                    <Col className={"col-auto"}>
+                        <Sidebar>
+                            <Menu>
+                                <MenuItem onClick={() => navigateToProfile()}>
+                                    {
+                                        currentUser
+                                            ?
+                                            <span>
+                                                <Image
+                                                    style={{borderRadius: "50%", marginRight: 5}}
+                                                    width={35}
+                                                    height={35}
+                                                    thumbnail={true}
+                                                    src={userImage}
+                                                />
+                                                {currentUser.name}
+                                            </span>
+                                            :
+                                            'Timeline'
+                                    }
+                                </MenuItem>
+                                <MenuItem onClick={navigateToFriends}><FaUserGroup size={35} style={{marginRight: 5}} />Friends</MenuItem>
+                            </Menu>
+                        </Sidebar>
+                    </Col>
+                    <Col className={"col-8"}>
+                        <Row>
+                            <Account/>
+                        </Row>
+                        <Row>
+                            <DisplayPostList
+                                currentUser={currentUser}
+                                profileUser={homeUser}
+                                postsToDisplay={posts}
+                                customUpdateOnShare={customUpdateOnShare}
+                                customUpdateOnLike={customUpdateOnLike}
+                                customUpdateOnReply={customUpdateOnReply}
+                                isReply={false}
+                                displayPhotos={true}
+                            />
+                        </Row>
+                    </Col>
+                </Row>
             </Container>
         </div>
     );

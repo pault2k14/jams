@@ -1,0 +1,44 @@
+Post Data structure and JSON structure 
+
+Post
+ - Content
+   - Text
+   - Pictures
+   - Videos
+ - User Tags
+   - Many User Tags to one Post
+ - Timestamp
+ - Likes
+   - Many Likes to one Post
+   - Users
+   - Calculated - Total Likes
+ - Shares
+   - Many Shares to one Post
+   - Users
+   - Calculated - Total Shares
+ - Comments (on original) / Replies (to comments)
+   - Many comments/replies to one Post
+   - Post
+   
+let posts = [
+  {
+    textContent: String,
+    imageContent: byte[],
+    videoContent: byte[],
+    userTags: Users[],
+    timestamp: timestamp,
+    Likes: [
+      {
+        user: User
+      }
+    ],  
+    Shares: [
+      {
+        userThatShared: User,
+        userRecievingShare: User
+      }
+    ],
+    comments: Post[]
+  }
+]
+
